@@ -6,39 +6,55 @@ public class AudioVisualizer : MonoBehaviour
 
     float[] spectrum;
     public int spectrumSize = 256;
-    public int totalDividationBars = 10;
+    public GameObject soundBarsParent;
+    public GameObject[] soundBars;
+    private int totalDividationBars = 10;
     private float sumOfNeighbours = 0;
 
     void Start()
     {
         spectrum = new float[spectrumSize];
+        int i = 0;
+        soundBars = new GameObject[soundBarsParent.transform.childCount];
+        if (soundBarsParent != null)
+        {
+            foreach (Transform gme in soundBarsParent.transform)
+            {
+                soundBars[i] = gme.gameObject;
+                i++;
+            }
+        }
+        totalDividationBars = soundBars.Length;
     }
 
     void Update()
     {
-        AudioListener.GetSpectrumData(spectrum, 0, FFTWindow.Rectangular);
+        if (totalDividationBars > 0)
+        {
+            AudioListener.GetSpectrumData(spectrum, 0, FFTWindow.Blackman);
 
-        //for (int i = 1; i < spectrum.Length - 1; i++)
-        //{
-        //    Debug.DrawLine(new Vector3(Mathf.Log(i - 1), spectrum[i - 1] - 10, 1), new Vector3(Mathf.Log(i), spectrum[i] - 10, 1), Color.green);
-        //}
-        for (int i = 0; i < spectrum.Length - (spectrum.Length / totalDividationBars); i += (spectrum.Length / totalDividationBars))
-        {
-            sumOfNeighbours = 0.0f;
-            for (int j = i; j < i + (spectrum.Length / totalDividationBars); j++)
+            for (int i = 0; i < spectrum.Length - (spectrum.Length / totalDividationBars); i += (spectrum.Length / totalDividationBars))
             {
-                sumOfNeighbours += spectrum[j];
+                sumOfNeighbours = 0.0f;
+                for (int j = i; j < i + (spectrum.Length / totalDividationBars); j++)
+                {
+                    sumOfNeighbours += spectrum[j] * 10.0f;
+                }
+                Debug.LogWarning((i / (spectrum.Length / totalDividationBars)) + ": " + sumOfNeighbours * 10.0f);
+                soundBars[(i / (spectrum.Length / totalDividationBars))].transform.localScale =
+                    new Vector3(1.0f, sumOfNeighbours > 1.0f ? sumOfNeighbours : 1.0f, 1.0f);
             }
-            Debug.LogWarning(i + ": " + sumOfNeighbours);
-        }
-        if ((spectrum.Length - (spectrum.Length / totalDividationBars)) > 0)
-        {
-            sumOfNeighbours = 0.0f;
-            for (int i = (spectrum.Length - (spectrum.Length / totalDividationBars)); i < spectrum.Length; i++)
+            if ((spectrum.Length - (spectrum.Length / totalDividationBars)) > 0)
             {
-                sumOfNeighbours += spectrum[i];
+                sumOfNeighbours = 0.0f;
+                for (int i = (spectrum.Length - (spectrum.Length / totalDividationBars)); i < spectrum.Length; i++)
+                {
+                    sumOfNeighbours += spectrum[i] * 10.0f;
+                }
+                soundBars[totalDividationBars - 1].transform.localScale =
+                    new Vector3(1.0f, sumOfNeighbours > 1.0f ? sumOfNeighbours : 1.0f, 1.0f);
+                Debug.LogWarning(totalDividationBars + ": " + sumOfNeighbours * 10.0f);
             }
-            Debug.LogWarning(totalDividationBars + ": " + sumOfNeighbours);
         }
     }
 }
