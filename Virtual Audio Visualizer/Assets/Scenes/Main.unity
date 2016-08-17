@@ -616,6 +616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9167942335b5a404a9cbe4d1fc73eedc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  window: 2
   spectrumSize: 256
   soundBarsParent: {fileID: 773612462}
   soundBars: []
