@@ -13,6 +13,17 @@ public class AudioVisualizer : MonoBehaviour
 		Primitive,
 		Prefab
 	};
+	public enum DrawShape
+	{
+		Linear,
+		Circular
+	};
+	[HideInInspector]
+	public DrawShape shape = DrawShape.Linear;
+	[HideInInspector]
+	public float radiusCircular = 5.0f;
+	[HideInInspector]
+	public float distanceBetween = 1.0f;
 	[HideInInspector]
 	public CreationType type = CreationType.Primitive;
 	[HideInInspector]
@@ -28,6 +39,11 @@ public class AudioVisualizer : MonoBehaviour
 	[HideInInspector]
 	public GameObject barPrefab;
     private int totalDividationBars = 10;
+	[Range(0.1f,5.0f)]
+	public float smoothScaleDuration = 0.3f;
+	[Range(10.0f,100.0f)]
+	public float multiplierDB = 10.0f;
+	public AudioSource audioSource;
 
     void Start()
     {
@@ -60,7 +76,7 @@ public class AudioVisualizer : MonoBehaviour
 				if (soundBars [i] != null) {
 					soundBars [i].transform.parent = transform;
 					soundBars [i].transform.localScale = Vector3.one;
-					soundBars [i].transform.localPosition = new Vector3 (i - divideBarCount / 2, 0.0f, 0.0f);
+					soundBars [i].transform.localPosition = GetPosition (i, transform);
 				}
 			}
 		}
@@ -69,17 +85,34 @@ public class AudioVisualizer : MonoBehaviour
 		}
 	}
 
+	Vector3 GetPosition(int index, Transform trns)
+	{
+		Vector3 tempPosition = Vector3.zero;
+		if (shape == DrawShape.Linear) {
+			tempPosition = new Vector3 ((index - (divideBarCount / 2)) * distanceBetween, 0.0f, 0.0f);
+		} else if (shape == DrawShape.Circular) {
+			tempPosition = new Vector3 (
+				Mathf.Cos ((index == 0 ? 0.0f : 360.0f / (float)divideBarCount) * index * Mathf.PI / 180.0f) * radiusCircular,
+				0.0f,
+				Mathf.Sin ((index == 0 ? 0.0f : 360.0f / (float)divideBarCount) * index * Mathf.PI / 180.0f) * radiusCircular);
+		}
+		return tempPosition;
+	}
+
     void Update()
     {
         if (totalDividationBars > 0)
 		{
 			if (soundBars != null) {
-				
-				AudioListener.GetSpectrumData (spectrum, 0, window);
-
+				if (audioSource == null) {
+					AudioListener.GetSpectrumData (spectrum, 0, window);
+				}
+				else {
+					audioSource.GetSpectrumData (spectrum, 0, window);
+				}
 				for (int i = 0; i < totalDividationBars; i++) {
-					soundBars [i].transform.localScale =
-                    new Vector3 (1.0f, spectrum [i] * 10.0f > 1.0f ? spectrum [i] * 10.0f : 1.0f, 1.0f);
+					soundBars [i].transform.localScale = Vector3.Lerp (soundBars [i].transform.localScale, new Vector3 (soundBars [i].transform.localScale.x,
+						spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB : 1.0f, soundBars [i].transform.localScale.z), Time.deltaTime * smoothScaleDuration);
 				}
 			}
         }
