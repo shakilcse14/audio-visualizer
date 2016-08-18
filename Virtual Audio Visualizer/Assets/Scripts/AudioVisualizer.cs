@@ -78,7 +78,6 @@ public class AudioVisualizer : MonoBehaviour
 				AudioListener.GetSpectrumData (spectrum, 0, window);
 
 				for (int i = 0; i < totalDividationBars; i++) {
-					Debug.LogWarning (i + ": " + spectrum [i] * 10.0f);
 					soundBars [i].transform.localScale =
                     new Vector3 (1.0f, spectrum [i] * 10.0f > 1.0f ? spectrum [i] * 10.0f : 1.0f, 1.0f);
 				}
