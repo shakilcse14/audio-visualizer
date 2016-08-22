@@ -9,6 +9,12 @@ public class VisualizerEditor : Editor {
 	{
 		var visualizer = target as AudioVisualizer;
 
+		visualizer.timerClip = EditorGUILayout.Slider ("Clip Timer", visualizer.timerClip,
+			0.0f, visualizer.audioTime);
+		if (visualizer.audioSource != null) {
+			visualizer.audioSource.time = visualizer.timerClip;
+		}
+
 		if (visualizer.mode == AudioVisualizer.Mode.Auto) {
 
 			visualizer.divideBarCount = EditorGUILayout.IntSlider ("Total Bar", visualizer.divideBarCount,
@@ -37,6 +43,7 @@ public class VisualizerEditor : Editor {
 				typeof (GameObject), true);
 		}
 
+		EditorUtility.SetDirty(target);
 		base.OnInspectorGUI ();
 	}
 }

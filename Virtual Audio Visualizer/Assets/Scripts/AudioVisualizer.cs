@@ -16,7 +16,8 @@ public class AudioVisualizer : MonoBehaviour
 	public enum DrawShape
 	{
 		Linear,
-		Circular
+		Circular,
+		RandomizeFloat
 	};
 	[HideInInspector]
 	public DrawShape shape = DrawShape.Linear;
@@ -44,6 +45,10 @@ public class AudioVisualizer : MonoBehaviour
 	[Range(10.0f,100.0f)]
 	public float multiplierDB = 10.0f;
 	public AudioSource audioSource;
+	[HideInInspector]
+	public float timerClip = 0.0f;
+	[HideInInspector]
+	public float audioTime = 0.0f;
 
     void Start()
     {
@@ -83,6 +88,17 @@ public class AudioVisualizer : MonoBehaviour
 		if (soundBars != null) {
 			totalDividationBars = soundBars.Length;
 		}
+		if (audioSource == null) {
+			var temp = AudioListener.FindObjectOfType<AudioSource> ();
+			if (temp != null) {
+				audioSource = temp;
+				audioTime = audioSource.clip.length;
+			}
+		}
+		else
+		{
+			audioTime = audioSource.clip.length;
+		}
 	}
 
 	Vector3 GetPosition(int index, Transform trns)
@@ -95,6 +111,8 @@ public class AudioVisualizer : MonoBehaviour
 				Mathf.Cos ((index == 0 ? 0.0f : 360.0f / (float)divideBarCount) * index * Mathf.PI / 180.0f) * radiusCircular,
 				0.0f,
 				Mathf.Sin ((index == 0 ? 0.0f : 360.0f / (float)divideBarCount) * index * Mathf.PI / 180.0f) * radiusCircular);
+		} else if (shape == DrawShape.RandomizeFloat) {
+			
 		}
 		return tempPosition;
 	}
@@ -106,9 +124,9 @@ public class AudioVisualizer : MonoBehaviour
 			if (soundBars != null) {
 				if (audioSource == null) {
 					AudioListener.GetSpectrumData (spectrum, 0, window);
-				}
-				else {
+				} else {
 					audioSource.GetSpectrumData (spectrum, 0, window);
+					timerClip = audioSource.time;
 				}
 				for (int i = 0; i < totalDividationBars; i++) {
 					soundBars [i].transform.localScale = Vector3.Lerp (soundBars [i].transform.localScale, new Vector3 (soundBars [i].transform.localScale.x,
