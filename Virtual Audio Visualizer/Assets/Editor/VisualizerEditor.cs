@@ -15,6 +15,9 @@ public class VisualizerEditor : Editor {
 			visualizer.audioSource.time = visualizer.timerClip;
 		}
 
+        visualizer.randomEffect = (AudioVisualizer.Effect)EditorGUILayout.EnumPopup("Random Effect",
+            visualizer.randomEffect);
+
 		if (visualizer.mode == AudioVisualizer.Mode.Auto) {
 
 			visualizer.divideBarCount = EditorGUILayout.IntSlider ("Total Bar", visualizer.divideBarCount,
@@ -36,7 +39,14 @@ public class VisualizerEditor : Editor {
 			else if (visualizer.shape == AudioVisualizer.DrawShape.Circular) {
 				visualizer.radiusCircular = EditorGUILayout.Slider ("Radius Between", visualizer.radiusCircular,
 					1.0f, 50.0f);
-			}
+            }
+            else if (visualizer.shape == AudioVisualizer.DrawShape.Randomize_Float)
+            {
+                visualizer.initialLocalPosition = (Vector3)EditorGUILayout.Vector3Field("Initial Position",
+                    visualizer.initialLocalPosition, null);
+                visualizer.radiusCircle = EditorGUILayout.Slider("Radius Random", visualizer.radiusCircle,
+                    1.0f, 50.0f);
+            }
 		}
 		else if (visualizer.mode == AudioVisualizer.Mode.Manual) {
 			visualizer.soundBarsParent = (GameObject)EditorGUILayout.ObjectField ("Bars Parent", visualizer.soundBarsParent,
