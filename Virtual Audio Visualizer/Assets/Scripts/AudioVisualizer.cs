@@ -77,6 +77,8 @@ public class AudioVisualizer : MonoBehaviour
 	public Transform originParent;
 	public Light pointLight;
 	public Light directionalLight;
+	public int channel = 0;
+
 
     void Start()
     {
@@ -265,75 +267,67 @@ public class AudioVisualizer : MonoBehaviour
             if (soundBars != null)
             {
                 if (audioSource == null)
-                {
-                    AudioListener.GetSpectrumData(spectrum, 0, window);
+				{
+					//AudioListener.GetOutputData(volume, channel);
+					AudioListener.GetSpectrumData(spectrum, channel, window);
                 }
                 else
                 {
                     audioSource.GetSpectrumData(spectrum, 0, window);
                     timerClip = audioSource.time;
                 }
-                for (int i = 0; i < totalDividationBars; i++)
-                {
-                    if (randomEffect == Effect.Position)
-                    {
-                        soundBars[i].transform.localPosition = Vector3.Lerp(soundBars[i].transform.localPosition,
-                            new Vector3(soundBars[i].transform.localPosition.x,
-                            spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].y,
-                            soundBars[i].transform.localPosition.z),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleY)
-                    {
+
+				for (int i = 0; i < totalDividationBars; i++) {
+					if (randomEffect == Effect.Position) {
+						soundBars [i].transform.localPosition = Vector3.Lerp (soundBars [i].transform.localPosition,
+							new Vector3 (soundBars [i].transform.localPosition.x,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : oldPositions [i].y,
+								soundBars [i].transform.localPosition.z),
+							Time.deltaTime * smoothScaleDuration);
+					} else if (randomEffect == Effect.ScaleY) {
                         soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
                             new Vector3(soundBars[i].transform.localScale.x,
-                            spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB : 1.0f,
+								spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB: 1.0f,
                             soundBars[i].transform.localScale.z),
                             Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleAll)
-                    {
-                        soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
-							new Vector3(spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-								spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-								spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleY_Position)
-                    {
-                        soundBars[i].transform.localPosition = Vector3.Lerp(soundBars[i].transform.localPosition,
-                            new Vector3(soundBars[i].transform.localPosition.x,
-                            spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].y,
-                            soundBars[i].transform.localPosition.z),
-                            Time.deltaTime * smoothScaleDuration);
-                        soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
-                            new Vector3(soundBars[i].transform.localScale.x,
-                            spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB : 1.0f,
-                            soundBars[i].transform.localScale.z),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleAll_Position)
-                    {
-                        soundBars[i].transform.localPosition = Vector3.Lerp(soundBars[i].transform.localPosition,
-							new Vector3(spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].x,
-                            spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].y,
-								spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].z),
+					} else if (randomEffect == Effect.ScaleAll) {
+						soundBars [i].transform.localScale = Vector3.Lerp (soundBars [i].transform.localScale,
+							new Vector3 (spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : 0.25f,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : 0.25f,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : 0.25f),
 							Time.deltaTime * smoothScaleDuration);
-						soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
-							new Vector3(spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-								spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-								spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f),
+					} else if (randomEffect == Effect.ScaleY_Position) {
+						soundBars [i].transform.localPosition = Vector3.Lerp (soundBars [i].transform.localPosition,
+							new Vector3 (soundBars [i].transform.localPosition.x,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : oldPositions [i].y,
+								soundBars [i].transform.localPosition.z),
 							Time.deltaTime * smoothScaleDuration);
-                    }
+						soundBars [i].transform.localScale = Vector3.Lerp (soundBars [i].transform.localScale,
+							new Vector3 (soundBars [i].transform.localScale.x,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB : 1.0f,
+								soundBars [i].transform.localScale.z),
+							Time.deltaTime * smoothScaleDuration);
+					} else if (randomEffect == Effect.ScaleAll_Position) {
+						soundBars [i].transform.localPosition = Vector3.Lerp (soundBars [i].transform.localPosition,
+							new Vector3 (spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : oldPositions [i].x,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : oldPositions [i].y,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : oldPositions [i].z),
+							Time.deltaTime * smoothScaleDuration);
+						soundBars [i].transform.localScale = Vector3.Lerp (soundBars [i].transform.localScale,
+							new Vector3 (spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : 0.25f,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : 0.25f,
+								spectrum [i] * 10.0f > 1.0f ? spectrum [i] * multiplierDB / 2.0f : 0.25f),
+							Time.deltaTime * smoothScaleDuration);
+					}
 					if (directionalLight != null && pointLight != null) {
 						if (spectrum [i] * 10.0f > 2.0f) {
-							pointLight.color = Color.Lerp (pointLight.color, new Color(Random.value,Random.value,Random.value,1.0f),
+							pointLight.color = Color.Lerp (pointLight.color, new Color (Random.value, Random.value, Random.value, 1.0f),
 								Time.deltaTime * smoothScaleDuration);
-							directionalLight.color = Color.Lerp (directionalLight.color, new Color(Random.value,Random.value,Random.value,1.0f),
+							directionalLight.color = Color.Lerp (directionalLight.color, new Color (Random.value, Random.value, Random.value, 1.0f),
 								Time.deltaTime * smoothScaleDuration);
 						}
 					}
-                }
+				}
             }
         }
     }

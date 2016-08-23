@@ -209,7 +209,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 921a22621f9c94d26ae4e5ae88a238cf, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 062374a9f244b446e806177f22bd8c26, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -712,21 +712,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mode: 0
-  shape: 1
-  randomEffect: 2
+  shape: 2
+  randomEffect: 0
   radiusCircular: 5
   distanceBetween: 1.25
-  type: 0
+  type: 1
   primitiveType: 0
   window: 2
   spectrumSize: 512
   soundBarsParent: {fileID: 773612462}
   soundBars: []
-  divideBarCount: 10
+  divideBarCount: 20
   barPrefab: {fileID: 173572, guid: f0356e527ed74464aada40e3d1819ae0, type: 2}
   smoothScaleDuration: 3.5
   multiplierDB: 20
-  audioSource: {fileID: 222329742}
+  audioSource: {fileID: 0}
   timerClip: 0
   audioTime: 0
   initialLocalPosition: {x: 0, y: 1, z: 0}
@@ -740,6 +740,7 @@ MonoBehaviour:
   originParent: {fileID: 712970819}
   pointLight: {fileID: 1062653831}
   directionalLight: {fileID: 1601549301}
+  channel: 1
 --- !u!1 &938263865
 GameObject:
   m_ObjectHideFlags: 0
