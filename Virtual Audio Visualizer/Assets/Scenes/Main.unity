@@ -712,11 +712,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mode: 0
-  shape: 2
-  randomEffect: 0
+  shape: 4
+  randomEffect: 4
   radiusCircular: 5
   distanceBetween: 1.25
-  type: 1
+  type: 0
   primitiveType: 0
   window: 5
   spectrumSize: 512
@@ -729,7 +729,7 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   timerClip: 0
   audioTime: 0
-  initialLocalPosition: {x: 0, y: 0, z: 0}
+  initialLocalPosition: {x: 0, y: 2.5, z: 0}
   radiusCircle: 6
   Row: 5
   Column: 5
@@ -802,7 +802,7 @@ Light:
   m_CookieSize: 10
   m_Shadows:
     m_Type: 2
-    m_Resolution: -1
+    m_Resolution: 3
     m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
