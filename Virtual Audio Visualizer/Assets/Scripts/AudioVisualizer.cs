@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class AudioVisualizer : MonoBehaviour
 {
@@ -86,6 +87,14 @@ public class AudioVisualizer : MonoBehaviour
 	private float timeToColorFade = 0.0f;
 	public float totalTimeColorFade = 1.0f;
 	private int seed;
+    [HideInInspector]
+    public bool isMeshGenerate;
+    private Mesh mesh;
+    private MeshFilter meshFilter;
+    private GameObject gmeMesh;
+    List<Vector3> vertices = new List<Vector3>();
+    List<int> triangles = new List<int>();
+    Vector2[] uvs;
 
     void Start()
 	{
@@ -93,7 +102,7 @@ public class AudioVisualizer : MonoBehaviour
 		timeToColorFade = totalTimeColorFade;
 		spectrum = new float[spectrumSize];
 		int count = 0;
-
+        uvs = new Vector2[totalDividationBars * totalDividationBars];
 
 		if (type == CreationType.Primitive) {
 			if (originParent != null) {
@@ -101,35 +110,60 @@ public class AudioVisualizer : MonoBehaviour
 					originParent.transform.position.y + 0.5f, originParent.transform.position.z);
 			}
 		}
-
-		if (mode == Mode.Manual) {
-			soundBars = new GameObject[soundBarsParent.transform.childCount];
-			if (soundBarsParent != null) {
-				foreach (Transform gme in soundBarsParent.transform) {
-					soundBars [count] = gme.gameObject;
-					count++;
-				}
-			}
-		} else if (mode == Mode.Auto) {
-			if (shape == DrawShape.BoxLinear || shape == DrawShape.PerlinNoise) {
-				divideBarCount = Row * Column;
-				if (divideBarCount >= spectrum.Length) {
-					gameObject.SetActive (false);
-					return;
-				}
-				soundBars = new GameObject[divideBarCount];
-				oldPositions = new Vector3[divideBarCount];
-				perlinNoise = new float[divideBarCount];
-				GenerateBox ();
-			} else {
-				soundBars = new GameObject[divideBarCount];
-				oldPositions = new Vector3[divideBarCount];
-				Generate ();
-			}
-		}
-		if (soundBars != null) {
-			totalDividationBars = soundBars.Length;
-		}
+        if (!isMeshGenerate)
+        {
+            if (mode == Mode.Manual)
+            {
+                soundBars = new GameObject[soundBarsParent.transform.childCount];
+                if (soundBarsParent != null)
+                {
+                    foreach (Transform gme in soundBarsParent.transform)
+                    {
+                        soundBars[count] = gme.gameObject;
+                        count++;
+                    }
+                }
+            }
+            else if (mode == Mode.Auto)
+            {
+                if (shape == DrawShape.BoxLinear || shape == DrawShape.PerlinNoise)
+                {
+                    divideBarCount = Row * Column;
+                    if (divideBarCount >= spectrum.Length)
+                    {
+                        gameObject.SetActive(false);
+                        return;
+                    }
+                    soundBars = new GameObject[divideBarCount];
+                    oldPositions = new Vector3[divideBarCount];
+                    perlinNoise = new float[divideBarCount];
+                    GenerateBox();
+                }
+                else
+                {
+                    soundBars = new GameObject[divideBarCount];
+                    oldPositions = new Vector3[divideBarCount];
+                    Generate();
+                }
+            }
+            if (soundBars != null)
+            {
+                totalDividationBars = soundBars.Length;
+            }
+        }
+        else
+        {
+            perlinNoise = new float[totalDividationBars * totalDividationBars];
+            for (int i = 0; i < totalDividationBars; i++)
+            {
+                for (int j = 0; j < totalDividationBars; j++)
+                {
+                    var index = i * Column + j;
+                    perlinNoise[index] = Mathf.PerlinNoise(j + seed + 0.01f, i);
+                }
+            }
+            MeshGenerate();
+        }
 		if (audioSource == null) {
 			var temp = AudioListener.FindObjectOfType<AudioSource> ();
 			if (temp != null) {
@@ -140,6 +174,48 @@ public class AudioVisualizer : MonoBehaviour
 			audioTime = audioSource.clip.length;
 		}
 	}
+
+    void MeshGenerate()
+    {
+        gmeMesh = new GameObject("Wave");
+        gmeMesh.transform.position = new Vector3(-totalDividationBars / 2.0f, 0.0f, -totalDividationBars / 2.0f);
+        meshFilter = gmeMesh.AddComponent<MeshFilter>();
+        mesh = new Mesh();
+        int indexUvs = 0;
+        for (int i = 0; i < totalDividationBars; i++)
+        {
+            for (int j = 0; j < totalDividationBars; j++)
+            {
+                Vector3 position = new Vector3(j, 0.0f, i);
+                vertices.Add(position);
+
+                uvs[indexUvs] = new Vector2(j / (float)totalDividationBars, i / (float)totalDividationBars);
+                indexUvs++;
+            }
+        }
+        for (int i = 0; i < totalDividationBars - 1; i++)
+        {
+            for (int j = 0; j < totalDividationBars - 1; j++)
+            {
+                triangles.Add(j + (i * totalDividationBars));
+                triangles.Add((j + (i * totalDividationBars)) + totalDividationBars);
+                triangles.Add((j + (i * totalDividationBars)) + totalDividationBars + 1);
+
+                triangles.Add(j + (i * totalDividationBars));
+                triangles.Add((j + (i * totalDividationBars)) + totalDividationBars + 1);
+                triangles.Add((j + (i * totalDividationBars)) + 1);
+            }
+        }
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
+        mesh.uv = uvs;
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+        mesh.name = "Custom Plane";
+        meshFilter.mesh = mesh;
+
+        gmeMesh.AddComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Standard"));
+    }
 
     void GenerateBox()
     {
@@ -281,105 +357,183 @@ public class AudioVisualizer : MonoBehaviour
     }
 
     void Update()
-	{
-		if (isRotate) {
-			if (originParent != null) {
-				originParent.Rotate (0.0f, Time.deltaTime * rotateAmount, 0.0f);
-			} else {
-				transform.Rotate (0.0f, Time.deltaTime * rotateAmount, 0.0f);
-			}
-		}
-		if (totalDividationBars > 0) {
-			if (soundBars != null) {
-				if (audioSource == null) {
-					AudioListener.GetSpectrumData (spectrum, channel, window);
-				} else {
-					audioSource.GetSpectrumData (spectrum, channel, window);
-					timerClip = audioSource.time;
-				}
-				if (shape == DrawShape.PerlinNoise) {
-					for (int i = 0; i < Row; i++) {
-						for (int j = 0; j < Column; j++) {
-							var index = i * Column + j;
-							if (randomEffect == Effect.Position) {
-								Position (index);
-							} else if (randomEffect == Effect.ScaleY) {
-								ScaleY (index);
-							} else if (randomEffect == Effect.ScaleAll) {
-								ScaleAll (index);
-							} else if (randomEffect == Effect.ScaleY_Position) {
-								Position (index);
-								ScaleY (index);
-							} else if (randomEffect == Effect.ScaleAll_Position) {
-								Position (index);
-								ScaleAll (index);
-							} else if (randomEffect == Effect.ScaleAll_RandomPosition) {
-								RandomPosition (index);
-								ScaleAll (index);
-							}
-						}
-						if (directionalLight != null && pointLight != null) {
-							if (spectrum [i] * 10.0f >= 0.5f) {
-								if (timeToColorFade <= 0.0f) {
-									targetColor = new Color (Random.value, Random.value, Random.value, 1.0f);
-									timeToColorFade = totalTimeColorFade;
-								} else {
-									var color = Color.Lerp (pointLight.color, targetColor,
-										Time.deltaTime / timeToColorFade);
-									color = new Color (color.r, color.g, color.b, 1.0f);
-									if (color.r <= 0.35f && color.g <= 0.35f && color.b <= 0.35f) {
-										color = new Color (Random.Range (0.5f, 1.0f), Random.Range (0.5f, 1.0f), Random.Range (0.5f, 1.0f), 1.0f);
-									}
-									pointLight.color = color;
-									directionalLight.color = color;
-									timeToColorFade -= Time.deltaTime;
-								}
-							}
-						}
-					}
-				} else {
-					for (int i = 0; i < totalDividationBars; i++) {
-						if (randomEffect == Effect.Position) {
-							Position (i);
-						} else if (randomEffect == Effect.ScaleY) {
-							ScaleY (i);
-						} else if (randomEffect == Effect.ScaleAll) {
-							ScaleAll (i);
-						} else if (randomEffect == Effect.ScaleY_Position) {
-							Position (i);
-							ScaleY (i);
-						} else if (randomEffect == Effect.ScaleAll_Position) {
-							Position (i);
-							ScaleAll (i);
-						} else if (randomEffect == Effect.ScaleAll_RandomPosition) {
-							RandomPosition (i);
-							ScaleAll (i);
-						}
-						if (directionalLight != null && pointLight != null) {
-							if (spectrum [i] * 10.0f >= 0.5f) {
-								if (timeToColorFade <= 0.0f) {
-									targetColor = new Color (Random.value, Random.value, Random.value, 1.0f);
-									timeToColorFade = totalTimeColorFade;
-								} else {
-									var color = Color.Lerp (pointLight.color, targetColor,
-										Time.deltaTime / timeToColorFade);
-									color = new Color (color.r, color.g, color.b, 1.0f);
-									if (color.r <= 0.35f && color.g <= 0.35f && color.b <= 0.35f) {
-										color = new Color (Random.Range (0.5f, 1.0f), Random.Range (0.5f, 1.0f), Random.Range (0.5f, 1.0f), 1.0f);
-									}
-									pointLight.color = color;
-									directionalLight.color = color;
-									timeToColorFade -= Time.deltaTime;
-								}
-							}
-						}
-					}
-				}
+    {
+        if (isRotate)
+        {
+            if (originParent != null)
+            {
+                originParent.Rotate(0.0f, Time.deltaTime * rotateAmount, 0.0f);
+            }
+            else
+            {
+                transform.Rotate(0.0f, Time.deltaTime * rotateAmount, 0.0f);
+            }
+        }
 
+        if (totalDividationBars > 0)
+        {
+            if (soundBars != null)
+            {
+                if (audioSource == null)
+                {
+                    AudioListener.GetSpectrumData(spectrum, channel, window);
+                }
+                else
+                {
+                    audioSource.GetSpectrumData(spectrum, channel, window);
+                    timerClip = audioSource.time;
+                }
+                if (shape == DrawShape.PerlinNoise)
+                {
+                    if (isMeshGenerate)
+                    {
+                        for (int i = 0; i < totalDividationBars * totalDividationBars; i++)
+                        {
+                            var val = spectrum[i] * multiplierDB >= 1.0f ?
+                                Mathf.Clamp(spectrum[i] * multiplierDB * (i + 1), 1.0f, 10.0f) :
+                                Mathf.Clamp(1.0f + spectrum[i] * multiplierDB * (i + 1), 1.0f, 10.0f);
+                            if (shape == DrawShape.PerlinNoise)
+                            {
+                                val = val - perlinNoise[i];
+                                val = Mathf.Clamp(val, 0.0f, 100.0f);
+                            }
+                            //Debug.LogWarning(mesh.vertices[i]);
+                            vertices[i] = Vector3.Lerp(mesh.vertices[i],
+                                new Vector3(mesh.vertices[i].x, val, mesh.vertices[i].z),
+                                Time.deltaTime * smoothScaleDuration);
+                        }
+                        mesh.vertices = vertices.ToArray();
+                        mesh.uv = uvs;
+                        mesh.triangles = triangles.ToArray();
 
-			}
-		}
-	}
+                        mesh.RecalculateNormals();
+                        mesh.RecalculateBounds();
+                        meshFilter.mesh = mesh;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Row; i++)
+                        {
+                            for (int j = 0; j < Column; j++)
+                            {
+                                var index = i * Column + j;
+                                if (randomEffect == Effect.Position)
+                                {
+                                    Position(index);
+                                }
+                                else if (randomEffect == Effect.ScaleY)
+                                {
+                                    ScaleY(index);
+                                }
+                                else if (randomEffect == Effect.ScaleAll)
+                                {
+                                    ScaleAll(index);
+                                }
+                                else if (randomEffect == Effect.ScaleY_Position)
+                                {
+                                    Position(index);
+                                    ScaleY(index);
+                                }
+                                else if (randomEffect == Effect.ScaleAll_Position)
+                                {
+                                    Position(index);
+                                    ScaleAll(index);
+                                }
+                                else if (randomEffect == Effect.ScaleAll_RandomPosition)
+                                {
+                                    RandomPosition(index);
+                                    ScaleAll(index);
+                                }
+                            }
+                            if (directionalLight != null && pointLight != null)
+                            {
+                                if (spectrum[i] * 10.0f >= 0.5f)
+                                {
+                                    if (timeToColorFade <= 0.0f)
+                                    {
+                                        targetColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+                                        timeToColorFade = totalTimeColorFade;
+                                    }
+                                    else
+                                    {
+                                        var color = Color.Lerp(pointLight.color, targetColor,
+                                            Time.deltaTime / timeToColorFade);
+                                        color = new Color(color.r, color.g, color.b, 1.0f);
+                                        if (color.r <= 0.35f && color.g <= 0.35f && color.b <= 0.35f)
+                                        {
+                                            color = new Color(Random.Range(0.5f, 1.0f), Random.Range(0.5f, 1.0f), Random.Range(0.5f, 1.0f), 1.0f);
+                                        }
+                                        pointLight.color = color;
+                                        directionalLight.color = color;
+                                        timeToColorFade -= Time.deltaTime;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < totalDividationBars; i++)
+                    {
+                        if (randomEffect == Effect.Position)
+                        {
+                            Position(i);
+                        }
+                        else if (randomEffect == Effect.ScaleY)
+                        {
+                            ScaleY(i);
+                        }
+                        else if (randomEffect == Effect.ScaleAll)
+                        {
+                            ScaleAll(i);
+                        }
+                        else if (randomEffect == Effect.ScaleY_Position)
+                        {
+                            Position(i);
+                            ScaleY(i);
+                        }
+                        else if (randomEffect == Effect.ScaleAll_Position)
+                        {
+                            Position(i);
+                            ScaleAll(i);
+                        }
+                        else if (randomEffect == Effect.ScaleAll_RandomPosition)
+                        {
+                            RandomPosition(i);
+                            ScaleAll(i);
+                        }
+                        if (directionalLight != null && pointLight != null)
+                        {
+                            if (spectrum[i] * 10.0f >= 0.5f)
+                            {
+                                if (timeToColorFade <= 0.0f)
+                                {
+                                    targetColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+                                    timeToColorFade = totalTimeColorFade;
+                                }
+                                else
+                                {
+                                    var color = Color.Lerp(pointLight.color, targetColor,
+                                        Time.deltaTime / timeToColorFade);
+                                    color = new Color(color.r, color.g, color.b, 1.0f);
+                                    if (color.r <= 0.35f && color.g <= 0.35f && color.b <= 0.35f)
+                                    {
+                                        color = new Color(Random.Range(0.5f, 1.0f), Random.Range(0.5f, 1.0f), Random.Range(0.5f, 1.0f), 1.0f);
+                                    }
+                                    pointLight.color = color;
+                                    directionalLight.color = color;
+                                    timeToColorFade -= Time.deltaTime;
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
+    }
 
 	void ScaleAll(int index)
 	{

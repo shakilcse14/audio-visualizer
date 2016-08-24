@@ -37,6 +37,10 @@ public class VisualizerEditor : Editor {
 					1.0f, 10.0f);
 			} else if (visualizer.shape == AudioVisualizer.DrawShape.BoxLinear 
 				|| visualizer.shape == AudioVisualizer.DrawShape.PerlinNoise) {
+                    if (visualizer.shape == AudioVisualizer.DrawShape.PerlinNoise)
+                    {
+                        visualizer.isMeshGenerate = EditorGUILayout.Toggle("Mesh Generate", visualizer.isMeshGenerate);
+                    }
 				visualizer.Row = EditorGUILayout.IntField ("Rows", visualizer.Row);
 				visualizer.Column = EditorGUILayout.IntField ("Columns", visualizer.Column);
 			}
