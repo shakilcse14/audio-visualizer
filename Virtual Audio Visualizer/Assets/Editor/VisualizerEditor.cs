@@ -35,7 +35,8 @@ public class VisualizerEditor : Editor {
 			if (visualizer.shape == AudioVisualizer.DrawShape.Linear) {
 				visualizer.distanceBetween = EditorGUILayout.Slider ("Distance Between", visualizer.distanceBetween,
 					1.0f, 10.0f);
-			} else if (visualizer.shape == AudioVisualizer.DrawShape.BoxLinear) {
+			} else if (visualizer.shape == AudioVisualizer.DrawShape.BoxLinear 
+				|| visualizer.shape == AudioVisualizer.DrawShape.PerlinNoise) {
 				visualizer.Row = EditorGUILayout.IntField ("Rows", visualizer.Row);
 				visualizer.Column = EditorGUILayout.IntField ("Columns", visualizer.Column);
 			}

@@ -28,7 +28,8 @@ public class AudioVisualizer : MonoBehaviour
         ScaleAll,
         Position,
         ScaleY_Position,
-        ScaleAll_Position
+        ScaleAll_Position,
+		ScaleAll_RandomPosition
     };
     [HideInInspector]
     public DrawShape shape = DrawShape.Linear;
@@ -44,9 +45,10 @@ public class AudioVisualizer : MonoBehaviour
     public PrimitiveType primitiveType = PrimitiveType.Cube;
     float[] spectrum;
     public FFTWindow window = FFTWindow.Rectangular;
-    public int spectrumSize = 256;
+	public int spectrumSize = 256;
     [HideInInspector]
     public GameObject soundBarsParent;
+	[HideInInspector]
     public GameObject[] soundBars;
     [HideInInspector]
     public int divideBarCount = 10;
@@ -70,7 +72,9 @@ public class AudioVisualizer : MonoBehaviour
     public int Row = 5;
     [HideInInspector]
     public int Column = 5;
-    public Vector3[] oldPositions;
+	[HideInInspector]
+	public Vector3[] oldPositions;
+	private float[] perlinNoise;
     public bool isRotate = false;
     public float rotateAmount = 15.0f;
     public Material reflectionMat;
@@ -78,11 +82,15 @@ public class AudioVisualizer : MonoBehaviour
     public Light pointLight;
     public Light directionalLight;
     public int channel = 0;
-
+	private Color targetColor;
+	private float timeToColorFade = 0.0f;
+	public float totalTimeColorFade = 1.0f;
 
     void Start()
     {
+		timeToColorFade = totalTimeColorFade;
         spectrum = new float[spectrumSize];
+		perlinNoise = new float[spectrumSize];
         int count = 0;
 
 
@@ -109,7 +117,7 @@ public class AudioVisualizer : MonoBehaviour
         }
         else if (mode == Mode.Auto)
         {
-            if (shape == DrawShape.BoxLinear)
+			if (shape == DrawShape.BoxLinear || shape == DrawShape.PerlinNoise)
             {
                 divideBarCount = Row * Column;
                 if (divideBarCount >= spectrum.Length)
@@ -154,6 +162,9 @@ public class AudioVisualizer : MonoBehaviour
             for (int j = 0; j < Column; j++)
             {
                 var index = i * Column + j;
+				if (shape == DrawShape.PerlinNoise) {
+					perlinNoise [index] = Mathf.PerlinNoise (j, i);
+				}
                 if (type == CreationType.Primitive)
                 {
                     soundBars[index] = GameObject.CreatePrimitive(primitiveType);
@@ -284,96 +295,122 @@ public class AudioVisualizer : MonoBehaviour
     }
 
     void Update()
-    {
-        if (isRotate)
-        {
-            if (originParent != null)
-            {
-                originParent.Rotate(0.0f, Time.deltaTime * rotateAmount, 0.0f);
-            }
-            else
-            {
-                transform.Rotate(0.0f, Time.deltaTime * rotateAmount, 0.0f);
-            }
-        }
-        if (totalDividationBars > 0)
-        {
-            if (soundBars != null)
-            {
-                if (audioSource == null)
-                {
-                    AudioListener.GetSpectrumData(spectrum, channel, window);
-                }
-                else
-                {
-                    audioSource.GetSpectrumData(spectrum, channel, window);
-                    timerClip = audioSource.time;
-                }
+	{
+		if (isRotate) {
+			if (originParent != null) {
+				originParent.Rotate (0.0f, Time.deltaTime * rotateAmount, 0.0f);
+			} else {
+				transform.Rotate (0.0f, Time.deltaTime * rotateAmount, 0.0f);
+			}
+		}
+		if (totalDividationBars > 0) {
+			if (soundBars != null) {
+				if (audioSource == null) {
+					AudioListener.GetSpectrumData (spectrum, channel, window);
+				} else {
+					audioSource.GetSpectrumData (spectrum, channel, window);
+					timerClip = audioSource.time;
+				}
 
-                for (int i = 0; i < totalDividationBars; i++)
-                {
-                    if (randomEffect == Effect.Position)
-                    {
-                        soundBars[i].transform.localPosition = Vector3.Lerp(soundBars[i].transform.localPosition,
-                            new Vector3(soundBars[i].transform.localPosition.x,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].y,
-                                soundBars[i].transform.localPosition.z),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleY)
-                    {
-                        soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
-                            new Vector3(soundBars[i].transform.localScale.x,
-                                spectrum[i] * multiplierDB > 1.0f ? spectrum[i] * multiplierDB * (i + 1) : 1.0f + spectrum[i] * multiplierDB * (i + 1),
-                            soundBars[i].transform.localScale.z),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleAll)
-                    {
-                        soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
-                            new Vector3(spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleY_Position)
-                    {
-                        soundBars[i].transform.localPosition = Vector3.Lerp(soundBars[i].transform.localPosition,
-                            new Vector3(soundBars[i].transform.localPosition.x,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].y,
-                                soundBars[i].transform.localPosition.z),
-                            Time.deltaTime * smoothScaleDuration);
-                        soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
-                            new Vector3(soundBars[i].transform.localScale.x,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB : 1.0f,
-                                soundBars[i].transform.localScale.z),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    else if (randomEffect == Effect.ScaleAll_Position)
-                    {
-                        soundBars[i].transform.localPosition = Vector3.Lerp(soundBars[i].transform.localPosition,
-                            new Vector3(spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].x,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].y,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : oldPositions[i].z),
-                            Time.deltaTime * smoothScaleDuration);
-                        soundBars[i].transform.localScale = Vector3.Lerp(soundBars[i].transform.localScale,
-                            new Vector3(spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f,
-                                spectrum[i] * 10.0f > 1.0f ? spectrum[i] * multiplierDB / 2.0f : 0.25f),
-                            Time.deltaTime * smoothScaleDuration);
-                    }
-                    if (directionalLight != null && pointLight != null)
-                    {
-                        if (spectrum[i] * 10.0f > 2.0f)
-                        {
-                            pointLight.color = Color.Lerp(pointLight.color, new Color(Random.value, Random.value, Random.value, 1.0f),
-                                Time.deltaTime * smoothScaleDuration);
-                            directionalLight.color = Color.Lerp(directionalLight.color, new Color(Random.value, Random.value, Random.value, 1.0f),
-                                Time.deltaTime * smoothScaleDuration);
-                        }
-                    }
-                }
-            }
-        }
-    }
+				for (int i = 0; i < totalDividationBars; i++) {
+					if (randomEffect == Effect.Position) {
+						Position (i);
+					} else if (randomEffect == Effect.ScaleY) {
+						ScaleY (i);
+					} else if (randomEffect == Effect.ScaleAll) {
+						ScaleAll (i);
+					} else if (randomEffect == Effect.ScaleY_Position) {
+						Position (i);
+						ScaleY (i);
+					} else if (randomEffect == Effect.ScaleAll_Position) {
+						Position (i);
+						ScaleAll (i);
+					} else if (randomEffect == Effect.ScaleAll_RandomPosition) {
+						RandomPosition (i);
+						ScaleAll (i);
+					}
+					if (directionalLight != null && pointLight != null) {
+						if (spectrum [i] * 10.0f >= 0.5f) {
+							if (timeToColorFade <= 0.0f) {
+								targetColor = new Color (Random.value, Random.value, Random.value, 1.0f);
+								timeToColorFade = totalTimeColorFade;
+							} else {
+								var color = Color.Lerp (pointLight.color, targetColor,
+									            Time.deltaTime / timeToColorFade);
+								color = new Color (color.r, color.g, color.b, 1.0f);
+								if (color.r <= 0.35f && color.g <= 0.35f && color.b <= 0.35f) {
+									color = new Color (Random.Range (0.5f, 1.0f), Random.Range (0.5f, 1.0f), Random.Range (0.5f, 1.0f), 1.0f);
+								}
+								pointLight.color = color;
+								directionalLight.color = color;
+								timeToColorFade -= Time.deltaTime;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void ScaleAll(int index)
+	{
+		var val = spectrum [index] * multiplierDB >= 1.0f ? 
+			Mathf.Clamp (spectrum [index] * multiplierDB / 2.0f * (index + 1), 0.25f, 5.0f) : 
+			Mathf.Clamp (0.25f + spectrum [index] * multiplierDB / 2.0f * (index + 1), 0.25f, 5.0f);
+		if (shape == DrawShape.PerlinNoise) {
+			val = perlinNoise [index] - val;
+		}
+		soundBars [index].transform.localScale = Vector3.Lerp (soundBars [index].transform.localScale,
+			new Vector3 (val, val, val), Time.deltaTime * smoothScaleDuration);
+	}
+
+	void Position(int index)
+	{
+		var val = spectrum [index] * multiplierDB >= 1.0f ? 
+			Mathf.Clamp (spectrum [index] * multiplierDB * (index + 1), 0.0f, 10.0f) : 
+			Mathf.Clamp (initialLocalPosition.y + spectrum [index] * multiplierDB * (index + 1), 0.0f, 10.0f);
+		if (shape == DrawShape.PerlinNoise) {
+			val = perlinNoise [index] - val;
+		}
+		soundBars [index].transform.localPosition = Vector3.Lerp (soundBars [index].transform.localPosition,
+			new Vector3 (soundBars [index].transform.localPosition.x,
+				val, soundBars [index].transform.localPosition.z),
+			Time.deltaTime * smoothScaleDuration);
+	}
+
+	void RandomPosition(int index)
+	{
+		var valy = spectrum [index] * multiplierDB >= 1.0f ? 
+			Mathf.Clamp (spectrum [index] * multiplierDB * (index + 1), 0.0f, 10.0f) : 
+			Mathf.Clamp (initialLocalPosition.y + spectrum [index] * multiplierDB * (index + 1), 0.0f, 10.0f);
+		if (shape == DrawShape.PerlinNoise) {
+			valy = perlinNoise [index] - valy;
+		}
+		var val = spectrum [index] * multiplierDB >= 1.0f ? 
+			Mathf.Clamp (spectrum [index] * multiplierDB * (index + 1), 0.0f, 10.0f) : 
+			Mathf.Clamp (spectrum [index] * multiplierDB * (index + 1), 0.0f, 10.0f);
+		if (shape == DrawShape.PerlinNoise) {
+			val = perlinNoise [index] - val;
+		}
+
+		soundBars [index].transform.localPosition = Vector3.Lerp (soundBars [index].transform.localPosition,
+			new Vector3 (val * Random.Range (-1.0f, 1.0f),
+				valy, val * Random.Range (-1.0f, 1.0f)),
+			Time.deltaTime * smoothScaleDuration);
+	}
+
+	void ScaleY(int index)
+	{
+		var val = spectrum [index] * multiplierDB >= 1.0f ? 
+			Mathf.Clamp (spectrum [index] * multiplierDB * (index + 1), 1.0f, 10.0f) : 
+			Mathf.Clamp (1.0f + spectrum [index] * multiplierDB * (index + 1), 1.0f, 10.0f);
+		if (shape == DrawShape.PerlinNoise) {
+			val = perlinNoise [index] - val;
+		}
+		soundBars [index].transform.localScale = Vector3.Lerp (soundBars [index].transform.localScale,
+			new Vector3 (soundBars [index].transform.localScale.x, val,
+				soundBars [index].transform.localScale.z),
+			Time.deltaTime * smoothScaleDuration);
+	}
+
 }
