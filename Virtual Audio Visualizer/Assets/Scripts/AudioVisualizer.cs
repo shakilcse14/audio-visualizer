@@ -55,7 +55,6 @@ public class AudioVisualizer : MonoBehaviour
     public int divideBarCount = 10;
     [HideInInspector]
     public GameObject barPrefab;
-    private int totalDividationBars = 10;
     [Range(0.1f, 5.0f)]
     public float smoothScaleDuration = 0.3f;
     [Range(10.0f, 100.0f)]
@@ -95,6 +94,7 @@ public class AudioVisualizer : MonoBehaviour
     List<Vector3> vertices = new List<Vector3>();
     List<int> triangles = new List<int>();
     Vector2[] uvs;
+    public float spaceVertices = 0.5f;
 
     void Start()
 	{
@@ -102,7 +102,7 @@ public class AudioVisualizer : MonoBehaviour
 		timeToColorFade = totalTimeColorFade;
 		spectrum = new float[spectrumSize];
 		int count = 0;
-        uvs = new Vector2[totalDividationBars * totalDividationBars];
+        uvs = new Vector2[divideBarCount * divideBarCount];
 
 		if (type == CreationType.Primitive) {
 			if (originParent != null) {
@@ -148,15 +148,15 @@ public class AudioVisualizer : MonoBehaviour
             }
             if (soundBars != null)
             {
-                totalDividationBars = soundBars.Length;
+                divideBarCount = soundBars.Length;
             }
         }
         else
         {
-            perlinNoise = new float[totalDividationBars * totalDividationBars];
-            for (int i = 0; i < totalDividationBars; i++)
+            perlinNoise = new float[divideBarCount * divideBarCount];
+            for (int i = 0; i < divideBarCount; i++)
             {
-                for (int j = 0; j < totalDividationBars; j++)
+                for (int j = 0; j < divideBarCount; j++)
                 {
                     var index = i * Column + j;
                     perlinNoise[index] = Mathf.PerlinNoise(j + seed + 0.01f, i);
@@ -178,32 +178,32 @@ public class AudioVisualizer : MonoBehaviour
     void MeshGenerate()
     {
         gmeMesh = new GameObject("Wave");
-        gmeMesh.transform.position = new Vector3(-totalDividationBars / 2.0f, 0.0f, -totalDividationBars / 2.0f);
+        gmeMesh.transform.position = new Vector3(-divideBarCount / 2.0f * spaceVertices, 0.0f, -divideBarCount / 2.0f * spaceVertices);
         meshFilter = gmeMesh.AddComponent<MeshFilter>();
         mesh = new Mesh();
         int indexUvs = 0;
-        for (int i = 0; i < totalDividationBars; i++)
+        for (int i = 0; i < divideBarCount; i++)
         {
-            for (int j = 0; j < totalDividationBars; j++)
+            for (int j = 0; j < divideBarCount; j++)
             {
-                Vector3 position = new Vector3(j, 0.0f, i);
+                Vector3 position = new Vector3(j * spaceVertices, 0.0f, i * spaceVertices);
                 vertices.Add(position);
 
-                uvs[indexUvs] = new Vector2(j / (float)totalDividationBars, i / (float)totalDividationBars);
+                uvs[indexUvs] = new Vector2(j / (float)divideBarCount, i / (float)divideBarCount);
                 indexUvs++;
             }
         }
-        for (int i = 0; i < totalDividationBars - 1; i++)
+        for (int i = 0; i < divideBarCount - 1; i++)
         {
-            for (int j = 0; j < totalDividationBars - 1; j++)
+            for (int j = 0; j < divideBarCount - 1; j++)
             {
-                triangles.Add(j + (i * totalDividationBars));
-                triangles.Add((j + (i * totalDividationBars)) + totalDividationBars);
-                triangles.Add((j + (i * totalDividationBars)) + totalDividationBars + 1);
+                triangles.Add(j + (i * divideBarCount));
+                triangles.Add((j + (i * divideBarCount)) + divideBarCount);
+                triangles.Add((j + (i * divideBarCount)) + divideBarCount + 1);
 
-                triangles.Add(j + (i * totalDividationBars));
-                triangles.Add((j + (i * totalDividationBars)) + totalDividationBars + 1);
-                triangles.Add((j + (i * totalDividationBars)) + 1);
+                triangles.Add(j + (i * divideBarCount));
+                triangles.Add((j + (i * divideBarCount)) + divideBarCount + 1);
+                triangles.Add((j + (i * divideBarCount)) + 1);
             }
         }
         mesh.vertices = vertices.ToArray();
@@ -370,7 +370,7 @@ public class AudioVisualizer : MonoBehaviour
             }
         }
 
-        if (totalDividationBars > 0)
+        if (divideBarCount > 0)
         {
             if (soundBars != null)
             {
@@ -387,20 +387,29 @@ public class AudioVisualizer : MonoBehaviour
                 {
                     if (isMeshGenerate)
                     {
-                        for (int i = 0; i < totalDividationBars * totalDividationBars; i++)
+                        for (int k = 0; k < divideBarCount; k++)
                         {
-                            var val = spectrum[i] * multiplierDB >= 1.0f ?
-                                Mathf.Clamp(spectrum[i] * multiplierDB * (i + 1), 1.0f, 10.0f) :
-                                Mathf.Clamp(1.0f + spectrum[i] * multiplierDB * (i + 1), 1.0f, 10.0f);
-                            if (shape == DrawShape.PerlinNoise)
+                            for (int j = 0; j < divideBarCount; j++)
                             {
-                                val = val - perlinNoise[i];
-                                val = Mathf.Clamp(val, 0.0f, 100.0f);
+                                var index = k * divideBarCount + j;
+                                float val = 0.0f;
+                                if (spectrumSize > index)
+                                {
+                                    val = Mathf.Clamp(spectrum[index] * multiplierDB * (index + 1), 0.0f, 3.0f);
+                                    if (shape == DrawShape.PerlinNoise)
+                                    {
+                                        val = val - perlinNoise[index];
+                                        val = Mathf.Clamp(val, 0.0f, 100.0f);
+                                    }
+                                }
+                                else
+                                {
+                                    val = Mathf.Clamp(perlinNoise[index] * multiplierDB * Random.value * (index + 1), 0.0f, 3.0f);
+                                }
+                                vertices[index] = Vector3.Lerp(mesh.vertices[index],
+                                    new Vector3(mesh.vertices[index].x, val, mesh.vertices[index].z),
+                                    Time.deltaTime * smoothScaleDuration);
                             }
-                            //Debug.LogWarning(mesh.vertices[i]);
-                            vertices[i] = Vector3.Lerp(mesh.vertices[i],
-                                new Vector3(mesh.vertices[i].x, val, mesh.vertices[i].z),
-                                Time.deltaTime * smoothScaleDuration);
                         }
                         mesh.vertices = vertices.ToArray();
                         mesh.uv = uvs;
@@ -474,7 +483,7 @@ public class AudioVisualizer : MonoBehaviour
                 }
                 else
                 {
-                    for (int i = 0; i < totalDividationBars; i++)
+                    for (int i = 0; i < divideBarCount; i++)
                     {
                         if (randomEffect == Effect.Position)
                         {

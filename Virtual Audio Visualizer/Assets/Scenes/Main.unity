@@ -449,7 +449,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
 --- !u!1 &502889965
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,7 +564,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
 --- !u!1 &761211952
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,7 +687,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 4
 --- !u!114 &860259271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -713,7 +713,7 @@ MonoBehaviour:
   divideBarCount: 20
   barPrefab: {fileID: 173572, guid: f0356e527ed74464aada40e3d1819ae0, type: 2}
   smoothScaleDuration: 3.5
-  multiplierDB: 20
+  multiplierDB: 10
   audioSource: {fileID: 0}
   timerClip: 0
   audioTime: 0
@@ -732,6 +732,7 @@ MonoBehaviour:
   channel: 0
   totalTimeColorFade: 5
   isMeshGenerate: 1
+  spaceVertices: .5
 --- !u!1 &938263865
 GameObject:
   m_ObjectHideFlags: 0
@@ -1143,7 +1144,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
 --- !u!1 &1628323921
 GameObject:
   m_ObjectHideFlags: 0
@@ -1739,7 +1740,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
 --- !u!1 &1879434014
 GameObject:
   m_ObjectHideFlags: 0
@@ -1872,7 +1873,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &2095786463
 MeshRenderer:
   m_ObjectHideFlags: 0
