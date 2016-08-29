@@ -95,6 +95,7 @@ public class AudioVisualizer : MonoBehaviour
     List<int> triangles = new List<int>();
     Vector2[] uvs;
     public float spaceVertices = 0.5f;
+	public int increment = 0;
 
     void Start()
 	{
@@ -386,31 +387,30 @@ public class AudioVisualizer : MonoBehaviour
                 if (shape == DrawShape.PerlinNoise)
                 {
                     if (isMeshGenerate)
-                    {
-                        for (int k = 0; k < divideBarCount; k++)
-                        {
-                            for (int j = 0; j < divideBarCount; j++)
-                            {
-                                var index = k * divideBarCount + j;
-                                float val = 0.0f;
-                                if (spectrumSize > index)
-                                {
-                                    val = Mathf.Clamp(spectrum[index] * multiplierDB * (index + 1), 0.0f, 3.0f);
-                                    if (shape == DrawShape.PerlinNoise)
-                                    {
-                                        val = val - perlinNoise[index];
-                                        val = Mathf.Clamp(val, 0.0f, 100.0f);
-                                    }
-                                }
-                                else
-                                {
-                                    val = Mathf.Clamp(perlinNoise[index] * multiplierDB * Random.value * (index + 1), 0.0f, 3.0f);
-                                }
-                                vertices[index] = Vector3.Lerp(mesh.vertices[index],
-                                    new Vector3(mesh.vertices[index].x, val, mesh.vertices[index].z),
-                                    Time.deltaTime * smoothScaleDuration);
-                            }
-                        }
+					{
+						var index = 0;
+						float val = 0.0f;
+						var indice = 0;
+						increment = (int)((float)(divideBarCount * divideBarCount) / (float)spectrumSize) + 1;
+						for (int k = 0; k < divideBarCount; k += increment) {
+							for (int j = 0; j < divideBarCount; j += increment) {
+								val = 0.0f;
+								indice = k * divideBarCount + j;
+								if (spectrumSize > index) {
+									val = Mathf.Clamp (spectrum [index] * multiplierDB * (index + 1), 0.0f, 3.0f);
+									if (shape == DrawShape.PerlinNoise) {
+										val = val - perlinNoise [indice];
+										val = Mathf.Clamp (val, 0.0f, 100.0f);
+									}
+								} else {
+									val = Mathf.Clamp (perlinNoise [indice] * multiplierDB * Random.value * (index + 1), 0.0f, 3.0f);
+								}
+								vertices [indice] = Vector3.Lerp (mesh.vertices [indice],
+									new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
+									Time.deltaTime * smoothScaleDuration);
+								index++;
+							}
+						}
                         mesh.vertices = vertices.ToArray();
                         mesh.uv = uvs;
                         mesh.triangles = triangles.ToArray();
@@ -420,12 +420,13 @@ public class AudioVisualizer : MonoBehaviour
                         meshFilter.mesh = mesh;
                     }
                     else
-                    {
+					{
+						var index = 0;
                         for (int i = 0; i < Row; i++)
                         {
                             for (int j = 0; j < Column; j++)
-                            {
-                                var index = i * Column + j;
+							{
+								index = i * Column + j;
                                 if (randomEffect == Effect.Position)
                                 {
                                     Position(index);
