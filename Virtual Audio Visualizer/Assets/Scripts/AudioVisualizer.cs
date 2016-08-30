@@ -400,23 +400,43 @@ public class AudioVisualizer : MonoBehaviour
 									val = Mathf.Clamp (spectrum [index] * multiplierDB * (index + 1), 0.0f, 3.0f);
 									if (shape == DrawShape.PerlinNoise) {
 										val = val - perlinNoise [indice];
-										val = Mathf.Clamp (val, 0.0f, 100.0f);
+										val = Mathf.Clamp (val, 0.0f, 10.0f);
 									}
 								} else {
 									val = Mathf.Clamp (perlinNoise [indice] * multiplierDB * Random.value * (index + 1), 0.0f, 3.0f);
+									val = val - perlinNoise [indice];
+									val = Mathf.Clamp (val * Random.Range (0.0f, 1.0f), 0.0f, 10.0f);
 								}
 								vertices [indice] = Vector3.Lerp (mesh.vertices [indice],
 									new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
 									Time.deltaTime * smoothScaleDuration);
 								index++;
+								for (int i = j - increment + 1; i < j && i > 0; i++) {
+									indice = k * divideBarCount + i;
+									val = (mesh.vertices [indice - 1].y + mesh.vertices [indice + 1].y) / Random.Range (1.5f, 3.5f);
+									vertices [indice] = Vector3.Lerp (mesh.vertices [indice],
+										new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
+										Time.deltaTime * smoothScaleDuration);
+								}
+							}
+							if ((k - increment) > 0) {
+								for (int i = 0; i < divideBarCount; i++) {
+									var indice1 = (k - increment - 1) * divideBarCount + i;
+									var indice2 = (k - increment) * divideBarCount + i;
+									indice = (k - increment + 1) * divideBarCount + i;
+									val = (mesh.vertices [indice1].y + mesh.vertices [indice2].y) / Random.Range (1.5f, 3.5f);
+									vertices [indice] = Vector3.Lerp (mesh.vertices [indice],
+										new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
+										Time.deltaTime * smoothScaleDuration);
+								}
 							}
 						}
                         mesh.vertices = vertices.ToArray();
                         mesh.uv = uvs;
                         mesh.triangles = triangles.ToArray();
 
+						mesh.RecalculateBounds();
                         mesh.RecalculateNormals();
-                        mesh.RecalculateBounds();
                         meshFilter.mesh = mesh;
                     }
                     else
