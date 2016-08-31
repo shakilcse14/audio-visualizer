@@ -211,7 +211,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 062374a9f244b446e806177f22bd8c26, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -251,7 +251,7 @@ AudioSource:
       tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 4
+    m_RotationOrder: 0
   spreadCustomCurve:
     serializedVersion: 2
     m_Curve:
@@ -273,7 +273,7 @@ AudioSource:
       tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 4
+    m_RotationOrder: 0
 --- !u!1 &283086678
 GameObject:
   m_ObjectHideFlags: 0
@@ -722,7 +722,7 @@ MonoBehaviour:
   spectrumSize: 256
   soundBarsParent: {fileID: 773612462}
   soundBars: []
-  divideBarCount: 20
+  divideBarCount: 40
   barPrefab: {fileID: 173572, guid: f0356e527ed74464aada40e3d1819ae0, type: 2}
   smoothScaleDuration: 3.5
   multiplierDB: 10
@@ -744,7 +744,7 @@ MonoBehaviour:
   channel: 0
   totalTimeColorFade: 5
   isMeshGenerate: 1
-  spaceVertices: 0.5
+  spaceVertices: 0.25
   increment: 0
 --- !u!1 &938263865
 GameObject:

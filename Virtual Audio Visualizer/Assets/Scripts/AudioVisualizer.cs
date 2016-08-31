@@ -411,9 +411,11 @@ public class AudioVisualizer : MonoBehaviour
 									new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
 									Time.deltaTime * smoothScaleDuration);
 								index++;
-								for (int i = j - increment + 1; i < j && i > 0; i++) {
+								for (int i = j + 1; i < j + increment; i++) {
 									indice = k * divideBarCount + i;
-									val = (mesh.vertices [indice - 1].y + mesh.vertices [indice + 1].y) / Random.Range (1.5f, 3.5f);
+									val = (mesh.vertices [indice - 1].y - mesh.vertices [j + increment].y) / increment;
+									val = Mathf.Abs (val);
+									val = mesh.vertices [indice - 1].y + 1 / increment;
 									vertices [indice] = Vector3.Lerp (mesh.vertices [indice],
 										new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
 										Time.deltaTime * smoothScaleDuration);
