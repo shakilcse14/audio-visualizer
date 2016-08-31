@@ -421,17 +421,6 @@ public class AudioVisualizer : MonoBehaviour
 										Time.deltaTime * smoothScaleDuration);
 								}
 							}
-							if ((k - increment) > 0) {
-								for (int i = 0; i < divideBarCount; i++) {
-									var indice1 = (k - increment - 1) * divideBarCount + i;
-									var indice2 = (k - increment) * divideBarCount + i;
-									indice = (k - increment + 1) * divideBarCount + i;
-									val = (mesh.vertices [indice1].y + mesh.vertices [indice2].y) / Random.Range (1.5f, 3.5f);
-									vertices [indice] = Vector3.Lerp (mesh.vertices [indice],
-										new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
-										Time.deltaTime * smoothScaleDuration);
-								}
-							}
 						}
                         mesh.vertices = vertices.ToArray();
                         mesh.uv = uvs;
