@@ -422,6 +422,35 @@ public class AudioVisualizer : MonoBehaviour
 								}
 							}
 						}
+						for (int k = 0; k < divideBarCount; k += increment) {
+							for (int i = 0; i < divideBarCount; i++) {
+								val = 0.0f;
+								for (int j = k + 1; j < k + increment && k + increment < divideBarCount; j++) {
+									indice = j * divideBarCount + i;
+
+//									Debug.Log (indice + " " + (k * divideBarCount + i) + " " +
+//									((k + increment) * divideBarCount + i) + " " + mesh.vertices.Length);
+//
+//									Debug.Log (mesh.vertices [(k * divideBarCount + i)].y + " " +
+//									mesh.vertices [((k + increment) * divideBarCount + i)].y);
+//
+									val = (mesh.vertices [(k * divideBarCount + i)].y +
+									mesh.vertices [((k + increment) * divideBarCount + i)].y);
+//
+									//val = (mesh.vertices [(k * divideBarCount + i)].y);
+									
+									//val = Mathf.Abs (val);
+									//val = mesh.vertices [indice].y + 1 / (float)increment;
+
+									//val = Mathf.Clamp (val * Random.Range (0.0f, 2.25f), 0.0f, 3.0f);
+
+									//Debug.Log (val);
+									vertices [indice] = Vector3.Lerp (mesh.vertices [indice],
+										new Vector3 (mesh.vertices [indice].x, val, mesh.vertices [indice].z),
+										Time.deltaTime * smoothScaleDuration);
+								}
+							}
+						}
                         mesh.vertices = vertices.ToArray();
                         mesh.uv = uvs;
                         mesh.triangles = triangles.ToArray();
